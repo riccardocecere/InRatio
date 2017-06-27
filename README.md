@@ -1,2 +1,2 @@
 # InRatio
-World Clustering for medial works
+Word Clustering for medial works
