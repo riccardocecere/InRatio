@@ -1,7 +1,7 @@
 import numpy
 from PIL import Image
 from matplotlib import pyplot as plt
-import MatrixReverse as mrev
+import ImagesManagment as im
 
 def horizontalMaxs(a):
 	"""
@@ -47,9 +47,11 @@ def reverse (matrix):
 	return reverse
 
 def load_image(infilename):
-	im=Image.open(infilename).convert('L')
-	a=numpy.array(im)
-	return a
+	image=Image.open(infilename).convert('L')
+	array_image=numpy.array(image)
+	cutted_array_image = im.crop_white_space(array_image)
+	right_size_array_image = im.add_white_padding(cutted_array_image)
+	return right_size_array_image
 
 def density_pixel(b):
 	"""
@@ -66,7 +68,7 @@ def density_pixel(b):
 		s=numpy.append(s,k)
 	return s
 
-def top_distance(matrix,posBaseDown,cost):
+def top_distance(matrix):
 	"""
 		metodo che data in ingresso una matrice riporta in uscita un array i cui ogni elemento 
 		iesimo corrisponde alla distanza in pixel, nella colonna iesima della matrice, tra
@@ -75,16 +77,11 @@ def top_distance(matrix,posBaseDown,cost):
 	"""
 	top_distance=numpy.array([])
 	M=len(matrix[0]) 
-	cuttedMatrix = numpy.zeros(shape=(posBaseDown+cost, M))
-	for i in range (0,posBaseDown+cost-1):
-		cuttedMatrix[i] =  matrix[i]
-	N=len(cuttedMatrix)
-	#plt.imshow(cuttedMatrix, cmap=plt.cm.gray)
-	#plt.show()
+	N=len(matrix)
 	for i in range(0,M):
 		k=N
 		for j in range(0,N):
-			if cuttedMatrix[j][i]==0:
+			if matrix[j][i]==0:
 				break
 			else:
 				k-=1
@@ -92,29 +89,20 @@ def top_distance(matrix,posBaseDown,cost):
 			top_distance=numpy.append(top_distance,k)
 	return top_distance
 
-def bottom_distance(matrix, posBaseDown, posBaseUp, cost):
+def bottom_distance(matrix):
 	"""
 		metodo che data in ingresso una matrice riporta in uscita un array i cui ogni elemento 
 		iesimo corrisponde alla distanza in pixel, nella colonna iesima della matrice, tra
 		l'ultimo elemento della colonna e la ultima occorrenza uguale a zero
 		(distanza tra il primo pixel nero in basso e il margine inferiore dell'immagine)
 	"""
-	reversedMatrix=mrev.reverse(matrix)
+	reversedMatrix=reverse(matrix)
 	bottom_distance=numpy.array([])
 	M=len(reversedMatrix[0])
 	N=len(reversedMatrix)
-	cuttedMatrix = numpy.zeros(shape=(posBaseUp, M))
-	#print reverseMatrix.shape
-	#print reverseMatrix.shape
-	for i,j in zip(range(N-posBaseDown-cost, N), range(0,posBaseUp)):
-		cuttedMatrix[j] = reversedMatrix[i]
-	#plt.imshow(mrev.reverse(cuttedMatrix), cmap=plt.cm.gray)
-	#plt.show()
-	j=0
-	N=len(cuttedMatrix)
 	for i in range(0,M):
 		for j in range(0,N):
-			if cuttedMatrix[j][i]==0:
+			if reversedMatrix[j][i]==0:
 				break 
 		#if j>0:
 		bottom_distance=numpy.append(bottom_distance,j)	
@@ -128,13 +116,10 @@ def image2Array(imgfile):
 	matrix=load_image(imgfile)
 	density=density_pixel(matrix)
 	horizontal=density_pixel(matrix.transpose())
-	posBaseDown, baseDown, posBaseUp, baseUp = horizontalMaxs(horizontal)
 	#plt.imshow(matrix)
 	#plt.show()
-	kUp = 5
-	kDown = 5
-	top=top_distance(matrix,posBaseDown,kDown)
-	bottom=bottom_distance(matrix, posBaseDown,posBaseUp,kUp)
+	top=top_distance(matrix)
+	bottom=bottom_distance(matrix)
 	#plt.plot(density)
 	#plt.show()
 	#plt.plot(horizontal)
